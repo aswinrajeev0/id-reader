@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { saveData } from "@/services/save-data";
 import { toast } from "sonner";
 import { formatToISO } from "@/utils/formatToIso";
+import { aadharSchema } from "@/validations/aadharSchema";
+import * as yup from "yup";
 
 interface ResultSectionProps {
     extractedData: AadharData;
@@ -22,6 +24,7 @@ export const ResultSection: React.FC<ResultSectionProps> = ({ extractedData, onD
     const [isEditing, setIsEditing] = useState(false);
     const [editedData, setEditedData] = useState<AadharData>(extractedData);
     const [isSaving, setIsSaving] = useState(false);
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -35,16 +38,30 @@ export const ResultSection: React.FC<ResultSectionProps> = ({ extractedData, onD
 
     const handleSave = async () => {
         setIsSaving(true);
+        const dataToValidate = {
+            ...editedData,
+            dob: formatToISO(editedData.dob || ""),
+        };
         try {
-            const response = await saveData(editedData)
+            setFormErrors({})
+            await aadharSchema.validate(dataToValidate, { abortEarly: false });
+            const response = await saveData(dataToValidate)
 
-            onDataUpdate?.(editedData);
+            onDataUpdate?.(dataToValidate);
 
             setIsEditing(false);
             toast(response.message)
         } catch (error: any) {
-            console.error('Error saving data:', error);
-            toast(error?.message)
+            if (error.name === "ValidationError") {
+                const fieldErrors: Record<string, string> = {};
+                error.inner.forEach((e: yup.ValidationError) => {
+                    if (e.path) fieldErrors[e.path] = e.message;
+                });
+                setFormErrors(fieldErrors);
+            } else {
+                console.error('Error saving data:', error);
+                toast.error(error?.message || "An error occurred while saving");
+            }
         } finally {
             setIsSaving(false);
         }
@@ -116,11 +133,16 @@ export const ResultSection: React.FC<ResultSectionProps> = ({ extractedData, onD
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500">Full Name</label>
                             {isEditing ? (
-                                <Input
-                                    value={displayData.name || ""}
-                                    onChange={(e) => handleInputChange('name', e.target.value)}
-                                    className="text-lg font-medium"
-                                />
+                                <>
+                                    <Input
+                                        value={displayData.name || ""}
+                                        onChange={(e) => handleInputChange('name', e.target.value)}
+                                        className="text-lg font-medium"
+                                    />
+                                    {formErrors.name && (
+                                        <p className="text-sm text-red-500">{formErrors.name}</p>
+                                    )}
+                                </>
                             ) : (
                                 <p className="text-lg font-medium">{displayData.name}</p>
                             )}
@@ -128,19 +150,24 @@ export const ResultSection: React.FC<ResultSectionProps> = ({ extractedData, onD
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500">Gender</label>
                             {isEditing ? (
-                                <Select
-                                    value={displayData.gender || ""}
-                                    onValueChange={(value) => handleInputChange('gender', value)}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Male">Male</SelectItem>
-                                        <SelectItem value="Female">Female</SelectItem>
-                                        <SelectItem value="Other">Other</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <>
+                                    <Select
+                                        value={displayData.gender || ""}
+                                        onValueChange={(value) => handleInputChange('gender', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Male">Male</SelectItem>
+                                            <SelectItem value="Female">Female</SelectItem>
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {formErrors.gender && (
+                                        <p className="text-sm text-red-500">{formErrors.gender}</p>
+                                    )}
+                                </>
                             ) : (
                                 <Badge variant="secondary">{displayData.gender}</Badge>
                             )}
@@ -148,11 +175,16 @@ export const ResultSection: React.FC<ResultSectionProps> = ({ extractedData, onD
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-500">Date of Birth</label>
                             {isEditing ? (
-                                <Input
-                                    type="date"
-                                    value={displayData.dob ? formatToISO(displayData.dob) : ""}
-                                    onChange={(e) => handleInputChange('dob', e.target.value)}
-                                />
+                                <>
+                                    <Input
+                                        type="date"
+                                        value={displayData.dob ? formatToISO(displayData.dob) : ""}
+                                        onChange={(e) => handleInputChange('dob', e.target.value)}
+                                    />
+                                    {formErrors.dob && (
+                                        <p className="text-sm text-red-500">{formErrors.dob}</p>
+                                    )}
+                                </>
                             ) : (
                                 <p className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4" />
@@ -164,10 +196,15 @@ export const ResultSection: React.FC<ResultSectionProps> = ({ extractedData, onD
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-500">Father's Name</label>
                                 {isEditing ? (
-                                    <Input
-                                        value={displayData.fatherName}
-                                        onChange={(e) => handleInputChange('fatherName', e.target.value)}
-                                    />
+                                    <>
+                                        <Input
+                                            value={displayData.fatherName}
+                                            onChange={(e) => handleInputChange('fatherName', e.target.value)}
+                                        />
+                                        {formErrors.fatherName && (
+                                            <p className="text-sm text-red-500">{formErrors.fatherName}</p>
+                                        )}
+                                    </>
                                 ) : (
                                     <p>{displayData.fatherName}</p>
                                 )}
@@ -187,13 +224,18 @@ export const ResultSection: React.FC<ResultSectionProps> = ({ extractedData, onD
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-500">Aadhaar Number</label>
                         {isEditing ? (
-                            <Input
-                                value={displayData.aadharNumber || ""}
-                                onChange={(e) => handleInputChange('aadharNumber', e.target.value)}
-                                className="text-xl font-mono font-bold text-blue-600"
-                                maxLength={12}
-                                pattern="[0-9]{12}"
-                            />
+                            <>
+                                <Input
+                                    value={displayData.aadharNumber || ""}
+                                    onChange={(e) => handleInputChange('aadharNumber', e.target.value)}
+                                    className="text-xl font-mono font-bold text-blue-600"
+                                    maxLength={12}
+                                    pattern="[0-9]{12}"
+                                />
+                                {formErrors.aadharNumber && (
+                                    <p className="text-sm text-red-500">{formErrors.aadharNumber}</p>
+                                )}
+                            </>
                         ) : (
                             <p className="text-xl font-mono font-bold text-blue-600">{displayData.aadharNumber}</p>
                         )}
@@ -209,12 +251,17 @@ export const ResultSection: React.FC<ResultSectionProps> = ({ extractedData, onD
                         Address
                     </h3>
                     {isEditing ? (
-                        <Textarea
-                            value={displayData.address || ""}
-                            onChange={(e) => handleInputChange('address', e.target.value)}
-                            className="text-gray-700 leading-relaxed min-h-[100px]"
-                            placeholder="Enter full address..."
-                        />
+                        <>
+                            <Textarea
+                                value={displayData.address || ""}
+                                onChange={(e) => handleInputChange('address', e.target.value)}
+                                className="text-gray-700 leading-relaxed min-h-[100px]"
+                                placeholder="Enter full address..."
+                            />
+                            {formErrors.address && (
+                                <p className="text-sm text-red-500">{formErrors.address}</p>
+                            )}
+                        </>
                     ) : (
                         <p className="text-gray-700 leading-relaxed">{displayData.address}</p>
                     )}

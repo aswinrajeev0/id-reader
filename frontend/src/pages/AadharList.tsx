@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import { User } from "lucide-react"
+import { ChevronLeft, User } from "lucide-react"
 import { toast } from "sonner"
 import { AadhaarCard } from "@/components/Aadhar-card"
 import { DeleteDialog } from "@/components/DeleteDialog";
 import type { AadharData } from "@/types/aadhar-data.type";
 import { deleteData, fetchAadharList } from "@/services/get-aadhar-list";
 import { SkeletonGrid } from "@/components/SkeletonCard";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function AadhaarDisplayPage() {
     const [aadhaarData, setAadhaarData] = useState<AadharData[]>([])
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [cardToDelete, setCardToDelete] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const navigate = useNavigate()
 
     const handleDeleteClick = (id: string) => {
         setCardToDelete(id)
@@ -51,6 +54,7 @@ export default function AadhaarDisplayPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+            <Button variant={"link"} onClick={() => navigate(-1)}><ChevronLeft />Go back</Button>
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Aadhaar Data Records</h1>
