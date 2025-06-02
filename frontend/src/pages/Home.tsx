@@ -21,7 +21,7 @@ export default function Home() {
 
         const aadharData = await getImageData(frontImage, backImage)
 
-        setExtractedData(aadharData?.parsedData)
+        setExtractedData((aadharData?.parsedData || []) as AadharData)
         setIsProcessing(false)
     }
 

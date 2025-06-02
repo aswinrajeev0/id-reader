@@ -38,7 +38,9 @@ export const extractAadhaarInfo = (frontText: string, backText: string): Aadhaar
     // Extract Gender
     const genderPattern = /\b(Male|Female|Others?)\b/i;
     const genderMatch = cleanFrontText.match(genderPattern);
-    info.gender = genderMatch ? genderMatch[1] : null;
+    info.gender = genderMatch
+        ? genderMatch[1].charAt(0).toUpperCase() + genderMatch[1].slice(1).toLowerCase()
+        : null;
 
     // Extract Name (line above DOB line)
     for (let i = 0; i < frontLines.length; i++) {
@@ -74,6 +76,5 @@ export const extractAadhaarInfo = (frontText: string, backText: string): Aadhaar
             .trim();
     }
 
-    console.log(info);
     return info;
 };
