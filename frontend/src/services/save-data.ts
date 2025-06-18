@@ -1,11 +1,11 @@
+import axiosInstance from "@/api/axios.interceptor";
+import { API_ROUTES } from "@/lib/apiRoutes";
 import type { AadharData } from "@/types/aadhar-data.type";
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL
-
 export const saveData = async (data: AadharData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/save-data`, {data});
+        const response = await axiosInstance.post(API_ROUTES.SAVE_DATA, {data});
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {

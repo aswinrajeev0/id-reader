@@ -3,7 +3,7 @@ import { deleteData, getAadharList, ocrController, saveData } from "../controlle
 
 const router = Router();
 
-router.post("/parse-aadhaar", ocrController);
+router.post("/parse-aadhar", ocrController);
 router.post("/save-data", saveData)
 router.get("/aadhar-list", getAadharList);
 router.delete("/delete-data", deleteData)

@@ -45,7 +45,7 @@ export async function saveData(req: Request, res: Response): Promise<void> {
         const parsedResult = AadharDataSchema.safeParse(data);
 
         if (!parsedResult.success) {
-            res.status(400).json({
+            res.status(HTTP_STATUS.BAD_REQUEST).json({
                 success: false,
                 message: ERROR_MESSAGES.MISSING_FIELDS
             });

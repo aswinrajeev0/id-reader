@@ -1,9 +1,10 @@
+import { API_ROUTES } from "@/lib/apiRoutes"
+import axiosInstance from "@/api/axios.interceptor"
 import axios from "axios"
-const BASE_URL = import.meta.env.VITE_BASE_URL
 
 export const fetchAadharList = async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/aadhar-list`);
+        const response = await axiosInstance.get(API_ROUTES.AADHAR_LIST);
         return response.data
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -18,7 +19,7 @@ export const fetchAadharList = async () => {
 
 export const deleteData = async (id: string) => {
     try {
-        const response = await axios.delete(`${BASE_URL}/delete-data`, {
+        const response = await axiosInstance.delete(API_ROUTES.DELETE_DATA, {
             params: {
                 id
             }

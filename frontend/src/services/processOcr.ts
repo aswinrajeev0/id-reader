@@ -1,10 +1,10 @@
+import axiosInstance from "@/api/axios.interceptor";
+import { API_ROUTES } from "@/lib/apiRoutes";
 import axios from "axios"
-
-const BASE_URL = import.meta.env.VITE_BASE_URL
 
 export const getImageData = async (frontImage: string | null, backImage: string | null) => {
     try {
-        const response = await axios.post(`${BASE_URL}/parse-aadhaar`, {
+        const response = await axiosInstance.post(API_ROUTES.PARSE_AADHAR, {
             frontImage,
             backImage
         })
